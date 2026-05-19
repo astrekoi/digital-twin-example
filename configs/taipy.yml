@@ -1,0 +1,38 @@
+# Taipy GUI overrides. .env values (TAIPY_*) take precedence;
+# this file documents page structure, theme tokens, and chart hints.
+
+theme:
+  mode_default: dark
+  palette:
+    bg_primary: "#0f1419"
+    bg_secondary: "#1a2027"
+    accent_blue: "#7aa9ff"
+    accent_amber: "#f0b34a"
+    accent_red: "#ff7a7a"
+    accent_green: "#7af0a0"
+    text_primary: "#e8edf2"
+    text_muted: "#9aa3ad"
+
+charts:
+  history_ranges:
+    - { label: "1 hour",  minutes: 60 }
+    - { label: "24 hours", minutes: 1440 }
+    - { label: "7 days",  minutes: 10080 }
+  default_range_minutes: 60
+  max_points_per_chart: 1000
+
+control:
+  rate_limit_command_s: 2.0
+  confirm_modal_for:
+    - relay
+    - servo
+  kill_switch_emoji: "🛑"
+
+forecast:
+  horizons_min:
+    - 15
+    - 60
+    - 1440
+
+events:
+  page_size: 50

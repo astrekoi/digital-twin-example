@@ -1,0 +1,34 @@
+# configs/runtime.yml - RuntimeConfig (hot-reloaded without a restart)
+#
+# This file is re-read by the collector every config_reload_interval_s
+# seconds. Changes apply on the fly - no collector restart needed. If the
+# file is missing the collector runs with Pydantic defaults.
+
+# --- Thresholds -----------------------------------------------------------
+# When a reading crosses a threshold, the collector writes a "threshold"
+# event into the DB.
+thresholds:
+  temp_c_max: 40.0          # C - overheating
+  temp_c_min: 10.0          # C - undercooling
+  humidity_pct_max: 90.0    # % - condensation risk
+  mq2_raw_warn: 0.4         # 0.0-1.0 - warning (no calibration table)
+  mq2_raw_alert: 0.7        # 0.0-1.0 - alert
+  current_ma_max: 300.0     # mA - RQD 4010MS fan overload
+  lux_min: 10.0             # lux - darkness
+
+# --- Fan auto-control -----------------------------------------------------
+# Auto-fan control of relay ch1 on overheat is disabled by default: any
+# autonomous actuator state change requires explicit opt-in in runtime.yml
+# AND UI confirmation, per the project policy "no actuator action without
+# confirmation". It can be enabled temporarily in research mode.
+fan_auto: false               # auto-engage relay ch1 on overheat
+fan_temp_threshold_c: 35.0    # C - auto-fan threshold (only when fan_auto: true)
+
+# --- AI inference ---------------------------------------------------------
+ai:
+  enabled: false              # turn on only after copying a model into models/
+  model_id: null              # null -> load the most recent model by trained_at
+  horizon_min: 15             # forecast horizon in minutes
+  models_dir: models          # directory with .joblib + .meta.json artifacts
+  # IMPORTANT: train models only on an external machine, never on the Pi.
+  # After training, copy .joblib + .meta.json into models/ via scp/rsync.

@@ -1,0 +1,46 @@
+# Secrets and local env
+.env
+.env.local
+
+# Virtualenvs
+.venv/
+.venv-*/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+
+# Data and runtime artifacts
+data/
+celerybeat-schedule.db
+celerybeat-schedule
+celerybeat.pid
+
+# Models - binaries are ignored by default; the demo set is kept in the repo
+models/*.joblib
+models/*.pkl
+models/*.onnx
+models/*.keras
+models/*.h5
+!models/xgb_temp_real_v2.joblib
+!models/lightgbm_temp_real_v2.joblib
+!models/xgb_humidity_real_v1.joblib
+
+# Coverage / pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+

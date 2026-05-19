@@ -1,0 +1,72 @@
+# configs/collector.yml - CollectorConfig for scripts/collector.py
+#
+# IMPORTANT: collector.py is the sole owner of GPIO / I2C / hardware.
+# Do NOT start the collector without explicit user permission.
+# Do NOT delete data/telemetry.db without explicit user permission.
+# If this file is missing the collector runs with Pydantic defaults.
+
+# --- Timing ---------------------------------------------------------------
+sample_period_s: 1.0          # sensor sampling period; Hz = 1 / sample_period_s
+config_reload_interval_s: 60  # how often to re-read configs/runtime.yml
+
+# --- Storage --------------------------------------------------------------
+db_path: data/telemetry.db    # SQLite WAL; do NOT delete without permission
+csv_dir: data                  # directory for daily CSV files
+csv_prefix: sensors            # filename: sensors_YYYY-MM-DD.csv
+retention_days: 7              # keep readings for at most 7 days (cleanup 1/h)
+runtime_config_path: configs/runtime.yml
+
+# --- Sensors --------------------------------------------------------------
+sensors:
+  bme280:
+    enabled: true
+    i2c_address: 0x76
+    # IMPORTANT: the device at 0x76 may be BME280 (chip_id=0x60) or
+    # BMP280 (chip_id=0x58).
+    # Verified 2026-04-26: i2cget -y 1 0x76 0xD0 -> 0x58 (BMP280-compatible).
+    # BMP280 has no humidity -> humidity_pct=None in readings (not an error).
+    # adafruit-circuitpython-bmp280==3.3.12 installed 2026-04-26.
+    kind: auto  # auto-detect via chip_id; or explicit "bme280" / "bmp280"
+
+  bh1750:
+    enabled: true
+    i2c_address: 0x23      # verified: BH1750 on bus 1
+
+  ina219:
+    enabled: true
+    i2c_address: 0x40      # IMPORTANT: A0/A1=GND -> 0x40, not 0x41
+
+  ds18b20:
+    enabled: true           # 1-Wire via /sys/bus/w1/devices/28-*
+
+  mq2:
+    enabled: true
+    # Current stand uses Troyka HAT Analog IO jumper 5V->V for MQ-2.
+    # expected_vcc="5V" means mq2_voltage = raw * 5.0.
+    # expected_vcc="3V3" remains an explicit alternate mode only.
+    # MQ-2 and SG90 servo cannot be used simultaneously through one
+    # Analog IO jumper.
+    expected_vcc: "5V"
+
+  pir:
+    enabled: true
+    bcm_pin: 23             # WP 4 = BCM 23 (Amperka PDF lists BCM 27 twice; typo)
+
+# --- Actuators ------------------------------------------------------------
+actuators:
+  relay:
+    enabled: true
+    bcm_pins: [25, 24, 12, 16]  # ch1=BCM25(fan), ch2=BCM24(buzzer), ch3=BCM12, ch4=BCM16
+    # HIGH Trigger (SRD-05VDC-SL-C); gpio=12,16,24,25=op,dl in config.txt
+    # BCM 7 and BCM 8 must NOT be used (hardware pull-up -> relay latches)
+
+  servo:
+    enabled: false           # disabled: 5V->V; not usable together with MQ-2 on Analog IO
+    expected_vcc: "5V"
+    analog_channels: [1, 2]  # A1, A2 on the Troyka HAT
+
+  leds:
+    enabled: true
+    bcm_red: 22              # WP 3 - through 220 Ohm
+    bcm_yellow: 27           # WP 2 - through 220 Ohm
+    bcm_green: 17            # WP 0 - through 220 Ohm

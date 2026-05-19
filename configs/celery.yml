@@ -1,0 +1,39 @@
+# Celery configuration overrides. Values from .env take precedence
+# (REDIS_URL, *_PERIOD_S etc.); this file documents queue topology and
+# retry policy that .env cannot describe ergonomically.
+
+queues:
+  - hardware_priority   # kill_switch_task - first in -Q list
+  - hardware            # retention_cleanup_task
+  - ai                  # predict_task
+  - external            # publish_pinata_task / publish_hedera_task / publish_digest_task
+
+beat_schedule:
+  # 1 Hz sample_sensors_inline + 1 Hz apply_pending_commands_inline live
+  # in APScheduler inside the hw-worker, NOT here.
+  predict:
+    task: src.tasks.ai.predict_task
+    queue: ai
+    period_s_env: PREDICT_PERIOD_S
+    default_period_s: 60
+  publish_digest:
+    task: src.tasks.external.publish_digest_task
+    queue: external
+    period_s_env: DIGEST_PERIOD_S
+    default_period_s: 300
+  retention_cleanup:
+    task: src.tasks.hardware.retention_cleanup_task
+    queue: hardware
+    period_s_env: RETENTION_PERIOD_S
+    default_period_s: 3600
+
+retry_policy:
+  default:
+    max_retries: 3
+    countdown_initial_s: 5
+    countdown_max_s: 300
+    backoff_factor: 2
+
+worker_options:
+  prefetch_multiplier: 1
+  task_acks_late: true
